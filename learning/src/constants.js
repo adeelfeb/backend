@@ -1,1 +1,1 @@
-export const DB_NAME =  "Cluster1" 
+export const DB_NAME =  "videotube" 
