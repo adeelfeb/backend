@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "dotenv": "^10.0.0",
-    "dotnet": "^1.1.4",
     "express": "^4.21.1",
     "mongoose": "^8.8.1"
   }

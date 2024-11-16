@@ -1,16 +1,29 @@
-// src/index.js
-import dotenv from 'dotenv';  // Import dotenv
+import express from 'express';  // Import express
+import dotenv from 'dotenv';  // Import dotenv to load environment variables
 import connectDB from './db/index.js';  // Import your DB connection
 
 dotenv.config({ path: './env' });  // Load environment variables
 
-// Call connectDB and ensure the app stays alive
-const startApp = async () => {
-  await connectDB();  // Call the DB connection
-  console.log('Application started...');  // Confirm the app started
+const app = express();  // Initialize the express app
+
+// Create an async function to start the server after DB connection
+const startServer = async () => {
+  // Connect to MongoDB
+  await connectDB(); // Wait for the DB connection to succeed
+
+  // Define a simple route
+  app.get('/', (req, res) => {
+    res.send('Hello, world!');
+  });
+
+  // Start the server once DB is connected
+  app.listen(process.env.PORT, () => {
+    console.log(`Server is running on port ${process.env.PORT}`);
+  });
 };
 
-startApp();
+// Call the startServer function
+startServer();
 
 
 
