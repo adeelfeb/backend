@@ -9,6 +9,7 @@ const registerUser = asyncHandler( async (req, res) => {
     
     // Destructuring the incoming data from req.body
     const { fullname, email, password, username } = req.body;
+    // console.log(req.body)
 
 
     // To check for the special empty space character
@@ -29,7 +30,11 @@ const registerUser = asyncHandler( async (req, res) => {
     }
 
     const avatarLocalPath = req.files?.avatar[0]?.path
-    const coverImageLocalPath = req.files?.coverImage[0]?.path
+    
+    const coverImageLocalPath = req.files?.coverImage ? req.files.coverImage[0]?.path : null;
+    console.log("request of Files ",req.files)
+
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path
 
     if(!avatarLocalPath){
         throw new ApiError(400, "Avatar is Required")
