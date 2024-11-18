@@ -18,7 +18,9 @@ const uploadOnCloudinary = async (localFilePath) => {
             resource_type: "auto",
         });
 
-        console.log("File Uploaded Successfully:", response);
+        // console.log("File Uploaded Successfully:", response);
+        // Use async unlink instead of unlinkSync
+        await fs.unlink(localFilePath);
         return response;
 
     } catch (error) {
@@ -26,7 +28,7 @@ const uploadOnCloudinary = async (localFilePath) => {
 
         // Clean up local file if an error occurs
         try {
-            await fs.unlink(localFilePath);
+            await fs.unlink(localFilePath); // Use async unlink here as well
             console.log("Local file deleted after failure:", localFilePath);
         } catch (cleanupError) {
             console.error("Error deleting local file:", cleanupError);
