@@ -173,7 +173,12 @@ const loginUser = asyncHandler(async (req, res)=>{
 const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
-        { $set: { refreshToken: undefined } },
+        {
+            $unset:{
+                refreshToken: 1// this can also be used to remove the refreshToken that keeps the user loggedIn
+            }
+        },
+        // { $set: { refreshToken: undefined } },
         { new: true }
     );
 
@@ -190,67 +195,145 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 
-const refreshAccessToken = asyncHandler(async (req, res)=>{
-    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
-    if(!incomingRefreshToken){
-        throw new ApiError(401, "Unauthorized Request")
+// const bcrypt = require('bcrypt');
+
+// const refreshAccessToken = asyncHandler(async (req, res) => {
+//     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+//     if (!incomingRefreshToken) {
+//         throw new ApiError(401, "Unauthorized request: Refresh token is missing");
+//     }
+
+//     try {
+//         // Decode the token
+//         const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+//         // Find the user
+//         const user = await User.findById(decodedToken?._id);
+//         if (!user) {
+//             throw new ApiError(401, "Invalid refresh token: User not found");
+//         }
+
+//         // Compare refresh tokens (assumes refreshToken is hashed in DB)
+//         const isMatch = await bcrypt.compare(incomingRefreshToken, user.refreshToken);
+//         if (!isMatch) {
+//             throw new ApiError(401, "Refresh token expired or has been used");
+//         }
+
+//         // Generate new tokens
+//         const { newaccessToken, newrefreshToken } = await generateAccessAndRefreshToken(user._id);
+
+//         // Set cookie options
+//         const options = {
+//             secure: true,
+//             httpOnly: true,
+//             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+//         };
+
+//         // Send response
+//         return res
+//             .status(200)
+//             .cookie("accessToken", newaccessToken, options)
+//             .cookie("refreshToken", newrefreshToken, options)
+//             .json(
+//                 new ApiResponse(200, { newaccessToken, newrefreshToken }, "Access token refreshed")
+//             );
+//     } catch (error) {
+//         throw new ApiError(401, error?.message || "Invalid refresh token");
+//     }
+// });
+
+
+const refreshAccessToken = asyncHandler(async (req, res) => {
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+    if (!incomingRefreshToken) {
+        throw new ApiError(401, "Unauthorized request: Refresh token is missing");
     }
-    
+
     try {
-        const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
-    
-        const user = await User.findById(decodedToken?._id)
-    
-        if(!user){
-            throw new ApiError(401, "Invalide Refresh Token")
+        // Decode the token
+        const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+        // Find the user
+        const user = await User.findById(decodedToken?._id);
+        if (!user) {
+            throw new ApiError(401, "Invalid refresh token: User not found");
         }
-    
-        if(incomingRefreshToken !== user?.refreshToken){
-            throw new ApiError(401, "Refresh Token expired or maybe used")
+
+        // Check if the refresh token matches the one stored in the user's record
+        if (incomingRefreshToken !== user?.refreshToken) {
+            throw new ApiError(401, "Refresh token expired or has been used");
         }
-    
-        options = {
+
+        // Generate new tokens
+        const { newaccessToken, newrefreshToken } = await generateAccessAndRefreshToken(user._id);
+
+        // Set cookie options
+        const options = {
             secure: true,
-            httpOnly: true
-        }
-    
-        const {newaccessToken, newrefreshToken} = await generateAccessAndRefreshToken(user._id)
-    
-        return res.status(200)
-        .cookie("accessToken", newaccessToken, options)
-        .cookie("refreshToken", newrefreshToken, options)
-        .json(
-            new ApiResponse(200,
-                {newaccessToken, newrefreshToken},
-                "Access Token Refreshed"
-            )
-        )
+            httpOnly: true,
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        };
+
+        // Send response
+        return res
+            .status(200)
+            .cookie("accessToken", newaccessToken, options)
+            .cookie("refreshToken", newrefreshToken, options)
+            .json(
+                new ApiResponse(200, { newaccessToken, newrefreshToken }, "Access token refreshed")
+            );
     } catch (error) {
-        throw new ApiError(401, error?.messsage || "Invalid Refresh Token")
+        throw new ApiError(401, error?.message || "Invalid refresh token");
+    }
+});
+
+
+
+// const changeCurrentPassword = asyncHandler(async (req, res)=>{
+//     const {oldPassword, newPassword} = req.body
+
+//     const user = User.findById(req.user?._id)
+//     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+
+//     if(!isPasswordCorrect){
+//         throw new ApiError(400, "Old password not Correct")
+//     }
+
+//     user.password = newPassword
+//     await user.save({validateBeforeSave: false})
+
+//     return res.status(200)
+//     .json(
+//         new ApiResponse(200, "Password Change Successfully")
+//     )
+// })
+
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+
+    // Find the user from the database and ensure it's awaited
+    const user = await User.findById(req.user?._id);
+    
+    if (!user) {
+        throw new ApiError(404, "User not found");
     }
 
+    // Use the isPasswordCorrect method defined in the schema
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
 
-})
-
-
-const changeCurrentPassword = asyncHandler(async (req, res)=>{
-    const {oldPassword, newPassword} = req.body
-
-    const user = User.findById(req.user?._id)
-    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
-
-    if(!isPasswordCorrect){
-        throw new ApiError(400, "Old password not Correct")
+    if (!isPasswordCorrect) {
+        throw new ApiError(400, "Old password is incorrect");
     }
 
-    user.password = newPassword
-    await user.save({validateBeforeSave: false})
+    // Set the new password and save it
+    user.password = newPassword;
+    await user.save({ validateBeforeSave: false });
 
-    return res.status(200)
-    .json(
-        new ApiResponse(200, "Password Change Successfully")
-    )
-})
+    return res.status(200).json(
+        new ApiResponse(200, "Password changed successfully")
+    );
+});
+
 
 
 const getCurrentUser = asyncHandler(async (req, res)=>{
@@ -440,7 +523,7 @@ const getWatchHistory = asyncHandler(async(req, res )=>{
                             $project:{
                                 fullname: 1,
                                 username: 1,
-                                avatar
+                                avatar:1
                             }
                         }]
                     }
