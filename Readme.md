@@ -4,6 +4,60 @@ This repository contains the backend implementation for **VideoTube**, a video-s
 
 ---
 
+### Commit Message: Add `getUserChannelProfile` Function with Advanced Aggregation for Channel Profiles  
+
+**Description:**  
+This commit introduces the `getUserChannelProfile` function, which utilizes MongoDB aggregation pipelines to fetch detailed information about a user's channel profile. The function integrates several advanced stages in the aggregation pipeline to calculate and enhance user-specific data, providing insights into their subscribers, subscribed channels, and subscription status.  
+
+---
+
+**Key Features and Steps:**  
+
+1. **Parameter Validation**:  
+   - Validates the presence of the `username` parameter in the request. Throws an error if the username is missing or empty.  
+
+2. **Aggregation Pipeline**:
+   - **`$match` Stage**:  
+     Filters the `User` collection to find a document matching the provided `username` in lowercase.  
+
+   - **First `$lookup` Stage**:  
+     - Joins the `subscriptions` collection to retrieve all subscriptions where the user is the `channel` being subscribed to.  
+     - The result is stored in the `subscribers` array.  
+
+   - **Second `$lookup` Stage**:  
+     - Joins the `subscriptions` collection again to retrieve all subscriptions where the user is the `subscriber` subscribing to other channels.  
+     - The result is stored in the `subscribedTo` array.  
+
+   - **`$addFields` Stage**:  
+     - Adds computed fields to the pipeline output:  
+       - `subscribersCount`: Counts the number of elements in the `subscribers` array (number of subscribers to the channel).  
+       - `channelSubscribedToCount`: Counts the number of elements in the `subscribedTo` array (number of channels the user is subscribed to).  
+       - `isSubscribed`: Checks if the currently authenticated user's `_id` exists in the `subscribers.subscriber` array, indicating whether the user is subscribed to this channel.  
+
+   - **`$project` Stage**:  
+     - Restricts the output fields to include only the necessary channel information:  
+       - `fullname`, `username`, `email`, `avatar`, `coverImage`.  
+       - Computed fields: `subscribersCount`, `channelSubscribedToCount`, and `isSubscribed`.  
+
+3. **Validation and Response**:  
+   - Ensures the channel exists in the database. Throws a `404 Not Found` error if the channel is not found.  
+   - Returns a successful response (`200 OK`) with the enhanced channel profile data.  
+
+---
+
+**Purpose and Concepts Introduced:**  
+- **Aggregation Pipelines**: Demonstrates how to transform and compute complex relationships within MongoDB using `$lookup`, `$addFields`, `$project`, and `$match`.  
+- **Joins in MongoDB**: Implements relational-like operations with `$lookup` to connect the `User` collection with the `subscriptions` collection.  
+- **Dynamic Field Computation**: Uses `$addFields` and `$size` to calculate counts and `$cond` with `$in` for conditional checks.  
+- **Efficient Data Shaping**: Leverages `$project` to return a clean and precise data structure.  
+
+---
+
+
+
+
+
+
 ## Features
 
 - **User Registration**: Handles user signup and authentication securely.
