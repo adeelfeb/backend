@@ -5,9 +5,9 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const addVideo = asyncHandler(async (req, res) => {
-    const videoUrl = req.query.videoUrl;
+    const videoUrl = req.body.videoUrl;
     const userId = req.user._id; // Assuming `req.user` is populated by a middleware like `verifyJWT`
-    // console.log(videoUrl)
+    console.log(videoUrl)
     if (!videoUrl) {
         throw new ApiError(400, "Please provide a valid video URL");
     }
@@ -42,8 +42,8 @@ const addVideo = asyncHandler(async (req, res) => {
     if (alreadyInHistory) {
         return res.status(200).json(
             new ApiResponse(
-                201, "Video already in watch history",
-                video,
+                201,video, "Video already in watch history",
+                
             ));
     }
 
@@ -53,8 +53,10 @@ const addVideo = asyncHandler(async (req, res) => {
 
     res.status(201).json(
         new ApiResponse(
-            201, "Video added successfully and included in watch history",
-            video,
+            201, 
+            video, 
+            "Video added successfully and included in watch history",
+            
         )
     );
 });
