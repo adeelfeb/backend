@@ -33,6 +33,12 @@ app.use(express.static("public"));
 // Cookies will be accessible via `req.cookies`
 app.use(cookieParser());
 
+
+app.get("/", (req, res) => {
+    res.send("Welcome to the API Server! Use /api/v1 for accessing routes.");
+  });
+  
+
 // Importing user-related routes from a separate file
 import userRouter from "../router/user.routes.js";
 
