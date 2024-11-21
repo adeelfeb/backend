@@ -26,6 +26,8 @@ const generateAccessAndRefreshToken = async (userId)=>{
 
 
 const registerUser = asyncHandler(async (req, res) => {
+
+    // console.log(req.body)
     // Destructuring the incoming data from req.body
     const { fullname, email, password, username } = req.body;
 
