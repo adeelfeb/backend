@@ -40,5 +40,13 @@ import userRouter from "../router/user.routes.js";
 // Any request starting with `/user` will be handled by `userRouter`
 app.use("/api/v1/users", userRouter);
 
+
+//Importing video-related routes from a separate file
+import videoRouter from "../router/video.routes.js"
+// Declaring the base route for the userRouter
+// Any request starting with `/user` will be handled by `userRouter`
+app.use("/api/v1/video", videoRouter)
+
+
 // Export the app for use in other parts of the project (e.g., starting the server)
 export { app };
