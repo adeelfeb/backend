@@ -5,6 +5,10 @@ import { User } from "../models/user.model.js";
 export const verifyJWT = async (req, res, next) => {
     try {
         // Retrieve token from cookies or Authorization header
+        console.log("Inside the authMiddleware");
+        console.log("Token from cookies:", req.cookies?.accessToken);
+        console.log("Token from headers:", req.header("Authorization"));
+
         const token =
             req.cookies?.accessToken ||
             req.header("Authorization")?.replace("Bearer ", "");
@@ -28,6 +32,7 @@ export const verifyJWT = async (req, res, next) => {
 
         next(); // Proceed to the next middleware
     } catch (error) {
+        console.log("Error with the authmiddleware");
         // Pass the error to the error handling middleware
         next(new ApiError(401, error.message || "Invalid Access Token"));
     }
