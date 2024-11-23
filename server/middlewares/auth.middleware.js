@@ -4,10 +4,7 @@ import { User } from "../models/user.model.js";
 
 export const verifyJWT = async (req, res, next) => {
     try {
-        // Retrieve token from cookies or Authorization header
-        console.log("Inside the authMiddleware");
-        console.log("Token from cookies:", req.cookies?.accessToken);
-        console.log("Token from headers:", req.header("Authorization"));
+        
 
         const token =
             req.cookies?.accessToken ||

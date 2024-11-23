@@ -9,7 +9,7 @@ const app = express();
 // Middleware to enable Cross-Origin Resource Sharing (CORS)
 // Allows requests from a specified origin, with credentials (like cookies) included
 app.use(cors({
-    origin: process.env.CORS_ORIGIN, // Origin allowed to make requests (from environment variable)
+    origin: process.env.CORS_ORIGIN || "http://localhost:3000",  // Set a default origin if not in env
     credentials: true,             // Allows cookies and other credentials in requests
 }));
 
@@ -33,26 +33,24 @@ app.use(express.static("public"));
 // Cookies will be accessible via `req.cookies`
 app.use(cookieParser());
 
-
+// Default route
 app.get("/", (req, res) => {
     res.send("Welcome to the API Server! Use /api/v1 for accessing routes.");
-  });
-  
+});
 
 // Importing user-related routes from a separate file
 import userRouter from "../router/user.routes.js";
 
 // Declaring the base route for the userRouter
-// Any request starting with `/user` will be handled by `userRouter`
+// Any request starting with `/api/v1/users` will be handled by `userRouter`
 app.use("/api/v1/users", userRouter);
 
+// Importing video-related routes from a separate file
+import videoRouter from "../router/video.routes.js";
 
-//Importing video-related routes from a separate file
-import videoRouter from "../router/video.routes.js"
-// Declaring the base route for the userRouter
-// Any request starting with `/user` will be handled by `userRouter`
-app.use("/api/v1/video", videoRouter)
-
+// Declaring the base route for the videoRouter
+// Any request starting with `/api/v1/video` will be handled by `videoRouter`
+app.use("/api/v1/videos", videoRouter);
 
 // Export the app for use in other parts of the project (e.g., starting the server)
 export { app };

@@ -1,5 +1,7 @@
 <svg version="1.2" xmlns="http://www.w3.org/2000/svg"
-  viewBox="0 0 14000 2764" width="14406" height="5064">
+  viewBox="0 0 14000 2764"  preserveAspectRatio="xMidYMid meet" width="2000" height="1000"
+  
+  >
   <defs>
     <!-- Define gradients here later -->
     <!-- Example gradient -->
@@ -115,7 +117,7 @@
 
         /* Applying the slide-in animation for the main logo text */
         #mainLogoTextGroup {
-            position: relative;
+            position: absolute;
             animation: slideInFromLeft 1s linear forwards; /* 1s duration, no easing */
         }
 
@@ -151,7 +153,7 @@
 
 
   <!-- Group 3: Translation Animation (Polygon) -->
-  <g id="customPoolGroup"   >
+  <g id="customPoolGroup" transform="translate(4200px, 2700px)"   >
     <path class="customPoola" d="m411.7 431.4c-43.4 37.2-109.9 58.1-171.6 58.1-137.4 0-238.4-104.9-238.4-242.7 0-140.3 104.3-246.9 241.3-246.9 60.6 0 123.5 21.1 168 58.9l-41.7 64.5c-34.9-25.8-77.2-40-117.6-40-91.2 0-153.7 71.5-153.7 161.2 0 88.7 60.6 160.2 152.4 160.2 43.6 0 87.3-16.2 118.9-39.4z"/>
 <path class="customPoola" d="m928 6.7h93v302.1c0 109.1-77.4 180.7-188.9 180.7-112 0-188-71.6-188-180.5v-302.3h94.7v302.5c0 57.7 40.9 95.7 96.3 95.7 53.9 0 92.9-35.7 92.9-95.7z"/>
 <path class="customPoola" d="m1434 404.7c45.4 0 81.4-16.8 81.4-55 0-97.6-241.8-32.1-241.8-204 0-96.1 75-145.8 166.8-145.8 59.6 0 119.6 21.1 163.7 56.1l-41.5 64.2c-36.1-24.6-80.3-37.5-116.9-37.5-43.9 0-78.2 18.9-78.2 55.6 0 97.4 243.8 27.8 243.8 204 0 99-76.8 147.2-172.7 147.2-69.9 0-129.8-25.8-178.7-65.7l42.1-66.1c42.3 30.8 87.7 47 132 47z"/>
