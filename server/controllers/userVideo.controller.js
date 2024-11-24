@@ -4,6 +4,7 @@ import { User } from "../models/user.model.js";
 import { Video } from "../models/video.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
+import axios from 'axios'; // Importing axios
 
 
 const getWatchHistory = asyncHandler(async (req, res) => {
@@ -42,7 +43,66 @@ const getWatchHistory = asyncHandler(async (req, res) => {
 });
 
 
+// const addVideo = asyncHandler(async (req, res) => {
+//     const videoUrl = req.body.videoUrl;
+//     const userId = req.user._id; // Assuming `req.user` is populated by a middleware like `verifyJWT`
+  
+//     if (!videoUrl) {
+//         throw new ApiError(400, "Please provide a valid video URL");
+//     }
+
+//     // Check if the video exists in the database
+//     let video = await Video.findOne({ videoUrl });
+
+//     if (!video) {
+//         // Video doesn't exist, create a new video entry
+//         video = new Video({ videoUrl });
+
+//         // Fetch video details (from YouTube or another source)
+//         await video.fetchVideoDetails();
+
+//         // Save the new video to the database
+//         await video.save();
+//     }
+
+//     // Fetch the user from the database
+//     const user = await User.findById(userId).populate("watchHistory");
+//     // console.log(user.watchHistory); 
+
+//     if (!user) {
+//         throw new ApiError(404, "User not found");
+//     }
+
+//     // Check if the video is already in the user's watch history
+//     const alreadyInHistory = user.watchHistory.some(
+//         (historyItem) => historyItem.videoUrl === videoUrl
+//     );
+
+//     if (alreadyInHistory) {
+//         return res.status(200).json(
+//             new ApiResponse(
+//                 201,video, "Video already in watch history",
+                
+//             ));
+//     }
+
+//     // Add the video to the user's watch history
+//     user.watchHistory.push(video._id);
+//     await user.save();
+
+//     res.status(201).json(
+//         new ApiResponse(
+//             201, 
+//             video, 
+//             "Video added successfully and included in watch history",
+            
+//         )
+//     );
+// });
+
 const addVideo = asyncHandler(async (req, res) => {
+
+  console.log("Inside AddVideo Func")
     const videoUrl = req.body.videoUrl;
     const userId = req.user._id; // Assuming `req.user` is populated by a middleware like `verifyJWT`
   
@@ -66,7 +126,6 @@ const addVideo = asyncHandler(async (req, res) => {
 
     // Fetch the user from the database
     const user = await User.findById(userId).populate("watchHistory");
-    // console.log(user.watchHistory); 
 
     if (!user) {
         throw new ApiError(404, "User not found");
@@ -78,26 +137,73 @@ const addVideo = asyncHandler(async (req, res) => {
     );
 
     if (alreadyInHistory) {
+      if (!video.requestSent) {
+        try {
+              console.log("Before sending Request To external API")
+              const tempResponse = await axios.post(process.env.EXTERNAL_VIDEO_ENDPOINT2, {
+                videoId: video._id,
+                videoUrl: videoUrl
+            });
+            if (tempResponse.data.videoId) {
+              console.log("Response from external API:", tempResponse.data);
+      
+              // Set requestSent to true after successful response
+              video.requestSent = true;
+      
+              // Save the updated video to the database
+              await video.save();
+              } else {
+                  // Handle case where the external API did not respond as expected
+                  throw new ApiError(400, "External API did not return a successful response");
+              }
+        } catch (error) {
+            // If there is an error, throw an appropriate ApiError
+            throw new ApiError(400, "Unable to send Request to the external API Again");
+        }
+    }
         return res.status(200).json(
             new ApiResponse(
-                201,video, "Video already in watch history",
-                
-            ));
+                201, video, "Video already in watch history"
+            )
+        );
     }
 
     // Add the video to the user's watch history
     user.watchHistory.push(video._id);
     await user.save();
 
+    // Sending a POST request to another endpoint with the videoId and videoUrl
+    try {
+        console.log("Before sending Request To external API")
+        const tempResponse = await axios.post(process.env.EXTERNAL_VIDEO_ENDPOINT2, {
+            videoId: video._id,
+            videoUrl: videoUrl
+        });
+        if (tempResponse.data.videoId) {
+          console.log("Response from external API:", tempResponse.data);
+  
+          // Set requestSent to true after successful response
+          video.requestSent = true;
+  
+          // Save the updated video to the database
+          await video.save();
+      } else {
+          // Handle case where the external API did not respond as expected
+          throw new ApiError(400, "External API did not return a successful response");
+      }
+    } catch (error) {
+        console.error("Error sending video data:", error);
+    }
+
     res.status(201).json(
         new ApiResponse(
-            201, 
-            video, 
-            "Video added successfully and included in watch history",
-            
+            201,
+            video,
+            "Video added successfully and included in watch history"
         )
     );
 });
+
 
 
 const getTranscript = asyncHandler(async (req, res) => {
@@ -148,8 +254,6 @@ const getTranscript = asyncHandler(async (req, res) => {
       new ApiResponse(200, { summary: summary }, "Summary fetched successfully")
     );
   });
-
-
 
 
   const getQnas = asyncHandler(async (req, res) => {

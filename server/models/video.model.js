@@ -16,6 +16,10 @@ const videoSchema = new Schema(
       hindi: { type: String, default: "NA" },
       urdu: { type: String, default: "NA" },
     },
+    requestSent: {
+      type: Boolean,
+      default: false, // Set to false by default
+    },
     summary: {
       english: { type: String, default: "NA" },
       hindi: { type: String, default: "NA" },
