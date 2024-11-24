@@ -12,14 +12,14 @@ const videoSchema = new Schema(
     title: { type: String },
     duration: { type: String }, // Store duration as a string in minutes:seconds format
     transcript: {
-      english: { type: String, default: "Not yet provided" },
-      hindi: { type: String, default: "Not yet provided" },
-      urdu: { type: String, default: "Not yet provided" },
+      english: { type: String, default: "NA" },
+      hindi: { type: String, default: "NA" },
+      urdu: { type: String, default: "NA" },
     },
     summary: {
-      english: { type: String, default: "Not yet provided" },
-      hindi: { type: String, default: "Not yet provided" },
-      urdu: { type: String, default: "Not yet provided" },
+      english: { type: String, default: "NA" },
+      hindi: { type: String, default: "NA" },
+      urdu: { type: String, default: "NA" },
     },
     qnas: {
       shortQuestions: [

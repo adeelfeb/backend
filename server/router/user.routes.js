@@ -1,8 +1,8 @@
 import {Router} from "express"
-import { registerUser, loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetails, updateUserAvatar, updateUserCoverImage, getWatchHistory } from "../controllers/user.controller.js"
+import { registerUser, loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetails, updateUserAvatar, updateUserCoverImage } from "../controllers/user.controller.js"
 import { upload } from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js"
-
+import { getWatchHistory, addVideo, getTranscript, getSummary, getQnas } from "../controllers/userVideo.controller.js"
 
 const router = Router()
 
@@ -30,8 +30,17 @@ router.route("/current-user").post(verifyJWT, getCurrentUser)
 router.route("/update-account").patch(verifyJWT, updateAccountDetails)
 router.route("/avatar").patch(verifyJWT, upload.single("avatar"), updateUserAvatar )
 router.route("/cover-image").patch(verifyJWT, upload.single("coverImage"), updateUserCoverImage)
+router.route("/addVideo").post(verifyJWT, addVideo); // Add video endpoint
+
+
+// Video-related routes (with JWT verification)
+router.route("/transcript").get(verifyJWT, getTranscript);  // Get transcript for a video
+router.route("/summary").get(verifyJWT, getSummary);      // Get summary for a video
+router.route("/qnas").get(verifyJWT, getQnas);  
+
+
 // router.route("/c/:username").get(verifyJWT, getUserChannelProfile)
 router.route("/history").get(verifyJWT, getWatchHistory)
-
+router.route("/refreshToken").get(verifyJWT, refreshAccessToken)
 
 export default router

@@ -171,10 +171,6 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Something went wrong while registering the user");
     }
 
-    // Log user details for testing
-    console.log("Email received is:", createdUser.email);
-    console.log("Full Name received is:", createdUser.fullname);
-    console.log("Username received is:", createdUser.username);
 
     // Send a successful response
     return res.status(201).json(new ApiResponse(200, createdUser, "User registered Successfully"));
@@ -251,49 +247,100 @@ const logoutUser = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, {}, "User Logged Out"));
 });
 
+// const refreshAccessToken = asyncHandler(async (req, res) => {
+//     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+//     if (!incomingRefreshToken) {
+//         throw new ApiError(401, "Unauthorized request: Refresh token is missing");
+//     }
+
+//     try {
+//         // Decode the token
+//         const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+//         // Find the user
+//         const user = await User.findById(decodedToken?._id);
+//         if (!user) {
+//             throw new ApiError(401, "Invalid refresh token: User not found");
+//         }
+
+//         // Check if the refresh token matches the one stored in the user's record
+//         if (incomingRefreshToken !== user?.refreshToken) {
+//             throw new ApiError(401, "Refresh token expired or has been used");
+//         }
+
+//         // Generate new tokens
+//         const { newaccessToken, newrefreshToken } = await generateAccessAndRefreshToken(user._id);
+
+//         // Set cookie options
+//         const options = {
+//             secure: true,
+//             httpOnly: true,
+//             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+//         };
+
+//         // Send response
+//         return res
+//             .status(200)
+//             .cookie("accessToken", newaccessToken, options)
+//             .cookie("refreshToken", newrefreshToken, options)
+//             .json(
+//                 new ApiResponse(200, { newaccessToken, newrefreshToken }, "Access token refreshed")
+//             );
+//     } catch (error) {
+//         throw new ApiError(401, error?.message || "Invalid refresh token");
+//     }
+// });
+
+
 const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
+    // Validate refresh token presence
     if (!incomingRefreshToken) {
         throw new ApiError(401, "Unauthorized request: Refresh token is missing");
     }
 
     try {
-        // Decode the token
+        // Decode the incoming refresh token
         const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
 
-        // Find the user
+        // Fetch the user using the decoded token's ID
         const user = await User.findById(decodedToken?._id);
         if (!user) {
             throw new ApiError(401, "Invalid refresh token: User not found");
         }
 
-        // Check if the refresh token matches the one stored in the user's record
-        if (incomingRefreshToken !== user?.refreshToken) {
+        // Verify that the refresh token matches the one stored for the user
+        if (incomingRefreshToken !== user.refreshToken) {
             throw new ApiError(401, "Refresh token expired or has been used");
         }
 
-        // Generate new tokens
-        const { newaccessToken, newrefreshToken } = await generateAccessAndRefreshToken(user._id);
+        // Generate new access and refresh tokens
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await generateAccessAndRefreshToken(user._id);
 
-        // Set cookie options
-        const options = {
+        // Update user's refresh token in the database
+        user.refreshToken = newRefreshToken;
+        await user.save();
+
+        // Set cookies for the new tokens
+        const cookieOptions = {
             secure: true,
             httpOnly: true,
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         };
 
-        // Send response
-        return res
-            .status(200)
-            .cookie("accessToken", newaccessToken, options)
-            .cookie("refreshToken", newrefreshToken, options)
-            .json(
-                new ApiResponse(200, { newaccessToken, newrefreshToken }, "Access token refreshed")
-            );
+        res.cookie("accessToken", newAccessToken, cookieOptions);
+        res.cookie("refreshToken", newRefreshToken, cookieOptions);
+
+        // Return tokens in the response
+        return res.status(200).json(
+            new ApiResponse(200, { accessToken: newAccessToken, refreshToken: newRefreshToken }, "Access token refreshed")
+        );
     } catch (error) {
-        throw new ApiError(401, error?.message || "Invalid refresh token");
+        throw new ApiError(401, error.message || "Invalid refresh token");
     }
 });
+
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
     const { oldPassword, newPassword } = req.body;
@@ -421,40 +468,7 @@ const updateUserCoverImage = asyncHandler(async(req, res)=>{
 //         new ApiResponse(200, user[0].watchHistory , "Watch History Fetched Successfully")
 //     )
 // })
-const getWatchHistory = asyncHandler(async (req, res) => {
-    try {
-        const user = await User.aggregate([
-            {
-                $match: {
-                    _id: new mongoose.Types.ObjectId(req.user._id),
-                },
-            },
-            {
-                $lookup: {
-                    from: "videos",
-                    localField: "watchHistory",
-                    foreignField: "_id",
-                    as: "watchHistory",
-                },
-            },
-            {
-                $project: {
-                    watchHistory: 1, // Only include watchHistory field
-                },
-            },
-        ]);
 
-        if (!user || !user.length) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        res.status(200).json(
-            new ApiResponse(200, user[0].watchHistory, "Watch History Fetched Successfully")
-        );
-    } catch (error) {
-        res.status(500).json({ message: "Failed to fetch watch history", error });
-    }
-});
 
 
 
@@ -468,5 +482,5 @@ export { registerUser,
     updateAccountDetails,
     updateUserAvatar,
     updateUserCoverImage,
-    getWatchHistory
+    
  };
