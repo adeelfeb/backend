@@ -4,11 +4,12 @@ import { User } from "../models/user.model.js";
 
 export const verifyJWT = async (req, res, next) => {
     try {
+        const userdata = req.header("Authorization")?.replace("Bearer ", "");
+        // console.log("The user is here: ",userdata)
         
 
         const token =
-            req.cookies?.accessToken ||
-            req.header("Authorization")?.replace("Bearer ", "");
+            req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
 
         if (!token) {
             throw new ApiError(401, "Token not provided");
@@ -29,7 +30,6 @@ export const verifyJWT = async (req, res, next) => {
 
         next(); // Proceed to the next middleware
     } catch (error) {
-        console.log("Error with the authmiddleware");
         // Pass the error to the error handling middleware
         next(new ApiError(401, error.message || "Invalid Access Token"));
     }

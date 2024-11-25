@@ -178,6 +178,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
 const loginUser = asyncHandler(async (req, res)=>{
     const { email, password, username } = req.body;
+    // console.log(email,password, username)
     
     if(!(username || email)){
         throw new ApiError(400, "User or email required")
@@ -246,50 +247,6 @@ const logoutUser = asyncHandler(async (req, res) => {
         .clearCookie("refreshToken", options)
         .json(new ApiResponse(200, {}, "User Logged Out"));
 });
-
-// const refreshAccessToken = asyncHandler(async (req, res) => {
-//     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
-//     if (!incomingRefreshToken) {
-//         throw new ApiError(401, "Unauthorized request: Refresh token is missing");
-//     }
-
-//     try {
-//         // Decode the token
-//         const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
-
-//         // Find the user
-//         const user = await User.findById(decodedToken?._id);
-//         if (!user) {
-//             throw new ApiError(401, "Invalid refresh token: User not found");
-//         }
-
-//         // Check if the refresh token matches the one stored in the user's record
-//         if (incomingRefreshToken !== user?.refreshToken) {
-//             throw new ApiError(401, "Refresh token expired or has been used");
-//         }
-
-//         // Generate new tokens
-//         const { newaccessToken, newrefreshToken } = await generateAccessAndRefreshToken(user._id);
-
-//         // Set cookie options
-//         const options = {
-//             secure: true,
-//             httpOnly: true,
-//             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-//         };
-
-//         // Send response
-//         return res
-//             .status(200)
-//             .cookie("accessToken", newaccessToken, options)
-//             .cookie("refreshToken", newrefreshToken, options)
-//             .json(
-//                 new ApiResponse(200, { newaccessToken, newrefreshToken }, "Access token refreshed")
-//             );
-//     } catch (error) {
-//         throw new ApiError(401, error?.message || "Invalid refresh token");
-//     }
-// });
 
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
@@ -441,33 +398,6 @@ const updateUserCoverImage = asyncHandler(async(req, res)=>{
     json(new ApiResponse(200, user, "Cover Image Updated Successfully"))
 })
 
-
-// const getWatchHistory = asyncHandler(async(req, res )=>{
-//     const user = await User.aggregate([
-//         {
-//             $match:{
-//                 _id: new mongoose.Types.ObjectId(req.user._id) 
-//             }
-//         },
-//         {
-//             $lookup:{
-//                 from: "videos",
-//                 localField: "watchHistory",
-//                 foreignField: "_id",
-//                 as: "watchHistory",
-               
-                
-//             },
-            
-//         }
-//     ])
-
-//     return res
-//     .status(200)
-//     .json(
-//         new ApiResponse(200, user[0].watchHistory , "Watch History Fetched Successfully")
-//     )
-// })
 
 
 
