@@ -102,7 +102,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
 
 const addVideo = asyncHandler(async (req, res) => {
 
-  console.log("Inside AddVideo Func")
+  // console.log("Inside AddVideo Func")
     const videoUrl = req.body.videoUrl;
     const userId = req.user._id; // Assuming `req.user` is populated by a middleware like `verifyJWT`
   
@@ -145,7 +145,7 @@ const addVideo = asyncHandler(async (req, res) => {
                 videoUrl: videoUrl
             });
             if (tempResponse.data.videoId) {
-              console.log("Response from external API:", tempResponse.data);
+              // console.log("Response from external API:", tempResponse.data);
       
               // Set requestSent to true after successful response
               video.requestSent = true;
@@ -174,13 +174,13 @@ const addVideo = asyncHandler(async (req, res) => {
 
     // Sending a POST request to another endpoint with the videoId and videoUrl
     try {
-        console.log("Before sending Request To external API")
+        // console.log("Before sending Request To external API")
         const tempResponse = await axios.post(process.env.EXTERNAL_VIDEO_ENDPOINT2, {
             videoId: video._id,
             videoUrl: videoUrl
         });
         if (tempResponse.data.videoId) {
-          console.log("Response from external API:", tempResponse.data);
+          // console.log("Response from external API:", tempResponse.data);
   
           // Set requestSent to true after successful response
           video.requestSent = true;
