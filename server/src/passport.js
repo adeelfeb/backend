@@ -53,31 +53,6 @@ import { User } from '../models/user.model.js';
 import { v4 as uuidv4 } from 'uuid';
 import config from './conf.js';
 
-// Configure the Google OAuth strategy
-// passport.use(new GoogleStrategy({
-//     clientID: config.googleAuth.clientId,
-//     clientSecret: config.googleAuth.clientSecret,
-//     callbackURL: config.googleAuth.callbackUrl,
-// }, async (accessToken, refreshToken, profile, done) => {
-//     try {
-//         let user = await User.findOne({ googleId: profile.id });
-
-//         if (!user) {
-//             user = new User({
-//                 googleId: profile.id,
-//                 email: profile.emails[0].value,
-//                 userId: uuidv4(),
-//                 username: profile.displayName,
-//             });
-//             await user.save();
-//         }
-
-//         return done(null, user);
-//     } catch (err) {
-//         return done(err, null);
-//     }
-// }));
-
 passport.use(new GoogleStrategy({
     clientID: config.googleAuth.clientId,
     clientSecret: config.googleAuth.clientSecret,

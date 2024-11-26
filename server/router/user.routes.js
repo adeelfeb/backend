@@ -1,5 +1,5 @@
 import {Router} from "express"
-import { registerUser, loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetails, updateUserAvatar, updateUserCoverImage } from "../controllers/user.controller.js"
+import { registerUser,loginWithTempToken,  loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetails, updateUserAvatar, updateUserCoverImage } from "../controllers/user.controller.js"
 import { upload } from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js"
 import { getWatchHistory, addVideo, getTranscript, getSummary, getQnas } from "../controllers/userVideo.controller.js"
@@ -21,7 +21,7 @@ router.route("/register").post(
 
 
 router.route("/login").post(loginUser)
-
+router.route("/login-with-temp-token").post(loginWithTempToken)
 // These routes are secure since using verifyJWT thingi is being used
 router.route("/logout").post(verifyJWT, logoutUser)
 router.route("/change-password").post(verifyJWT, changeCurrentPassword)

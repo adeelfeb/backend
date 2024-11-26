@@ -94,10 +94,66 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
 
-    // Send a successful response
-    return res.status(201).json(new ApiResponse(200, createdUser, "User registered Successfully"));
+     // Generate a temporary login token after user registration
+     const temporaryToken = jwt.sign(
+        { userId: user._id }, 
+        process.env.JWT_SECRET, 
+        { expiresIn: '1h' }  // The token expires after 1 hour
+    );
+
+    // Send the temporary token to login the user
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
+
+    // Fetch the created user without sensitive fields
+
+    // Send successful response including temporary login token
+    return res.status(201).json(new ApiResponse(200, {
+        user: createdUser,
+        accessToken,
+        refreshToken,
+        temporaryToken  // Return the temporary token as part of the response
+    }, "User registered and logged in successfully"));
 });
 
+const loginWithTempToken = asyncHandler(async (req, res) => {
+    const { token: temporaryToken } = req.body;  // Extract token from the request body
+
+    if (!temporaryToken) {
+        throw new ApiError(400, "Temporary token is required");  // Ensure the token is provided
+    }
+
+    try {
+        // Verify the temporary token
+        console.log("Here in the TempToken Login:", temporaryToken);
+        const decoded = jwt.verify(temporaryToken, process.env.JWT_SECRET);
+
+        // Extract userId from the decoded token
+        const userId = decoded.userId;
+
+        // Fetch the user from the database using the userId
+        const user = await User.findById(userId);
+        if (!user) {
+            throw new ApiError(404, "User not found");
+        }
+
+        // Generate new access and refresh tokens for the user
+        const accessToken = user.generateAccessToken();  // Assuming generateAccessToken is a method in your User model
+        const refreshToken = user.generateRefreshToken();  // Assuming generateRefreshToken is a method in your User model
+
+        // Save the new refresh token in the user's document
+        user.refreshToken = refreshToken;
+        await user.save({ validateBeforeSave: false });
+
+        // Return the generated tokens in the response
+        return res.status(200).json(new ApiResponse(200, {
+            accessToken,
+            refreshToken
+        }, "Logged in successfully"));
+    } catch (error) {
+        console.error("Error during login with temporary token:", error);
+        throw new ApiError(500, "Something went wrong while logging in with temporary token");
+    }
+});
 const loginUser = asyncHandler(async (req, res)=>{
     const { email, password, username } = req.body;
     // console.log(email,password, username)
@@ -334,5 +390,5 @@ export { registerUser,
     updateAccountDetails,
     updateUserAvatar,
     updateUserCoverImage,
-    
+    loginWithTempToken
  };
