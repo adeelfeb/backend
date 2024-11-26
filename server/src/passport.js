@@ -84,25 +84,33 @@ passport.use(new GoogleStrategy({
     callbackURL: config.googleAuth.callbackUrl,
 }, async (accessToken, refreshToken, profile, done) => {
     try {
-        let user = await User.findOne({ googleId: profile.id }); // Search by Google ID
+        let user = await User.findOne({ googleId: profile.id });
 
         if (!user) {
-            // If no user is found, create a new one
+            // Create a new user if not found
             user = new User({
-                googleId: profile.id,  // Store the Google ID
+                googleId: profile.id,
                 email: profile.emails[0].value,
                 username: profile.displayName,
                 fullname: profile.displayName,
-                avatar: profile.photos ? profile.photos[0].value : '', // Use Google profile photo if available
+                avatar: profile.photos ? profile.photos[0].value : '',
+                accessToken: accessToken, // Store the access token
+                refreshToken: refreshToken, // Store the refresh token
             });
-            await user.save(); // Save the user to the database
+            await user.save();
+        } else {
+            // Update existing user with new tokens
+            user.accessToken = accessToken;
+            user.refreshToken = refreshToken;
+            await user.save();
         }
 
-        return done(null, user); // Pass the user to the next middleware (session)
+        return done(null, user);
     } catch (err) {
-        return done(err, null); // Handle any errors
+        return done(err, null);
     }
 }));
+
 
 
 
