@@ -108,7 +108,6 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // Send successful response including temporary login token
     return res.status(201).json(new ApiResponse(200, {
-        user: createdUser,
         accessToken,
         refreshToken,
         temporaryToken  // Return the temporary token as part of the response
@@ -124,7 +123,7 @@ const loginWithTempToken = asyncHandler(async (req, res) => {
 
     try {
         // Verify the temporary token
-        console.log("Here in the TempToken Login:", temporaryToken);
+        // console.log("Here in the TempToken Login:", temporaryToken);
         const decoded = jwt.verify(temporaryToken, process.env.JWT_SECRET);
 
         // Extract userId from the decoded token
@@ -154,6 +153,9 @@ const loginWithTempToken = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Something went wrong while logging in with temporary token");
     }
 });
+
+
+
 const loginUser = asyncHandler(async (req, res)=>{
     const { email, password, username } = req.body;
     // console.log(email,password, username)
@@ -194,7 +196,7 @@ const loginUser = asyncHandler(async (req, res)=>{
     .json(
         new ApiResponse(200,
             {
-                user: loggedInUser, accessToken, refreshToken
+                accessToken, refreshToken
             },
             "User LoggedIn successfully"
         )

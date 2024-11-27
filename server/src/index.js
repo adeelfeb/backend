@@ -22,14 +22,14 @@ const startServer = async () => {
         });
 
         // Start ngrok and get the public URL
-        // const ngrokUrl = await ngrok.connect({
-        //     authtoken: process.env.NGROK_AUTH, // Use the token from .env
-        //     addr: port, // The port your app is running on
-        // });
-        // console.log(`🌐 Public URL via ngrok: ${ngrokUrl}`);
+        const ngrokUrl = await ngrok.connect({
+            authtoken: process.env.NGROK_AUTH, // Use the token from .env
+            addr: port, // The port your app is running on
+        });
+        console.log(`🌐 Public URL via ngrok: ${ngrokUrl}`);
 
         // Update the callback URL dynamically in your config
-        // conf.googleAuth.callbackUrl = `${ngrokUrl}/auth/google/callback`; // Use ngrok URL for callback
+        conf.googleAuth.callbackUrl = `${ngrokUrl}/auth/google/callback`; // Use ngrok URL for callback
 
     } catch (error) {
         console.error("❌ Error starting the server:", error.message);
