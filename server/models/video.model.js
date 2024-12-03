@@ -12,18 +12,22 @@ const videoSchema = new Schema(
     title: { type: String },
     duration: { type: String }, // Store duration as a string in minutes:seconds format
     transcript: {
-      english: { type: String, default: "NA" },
-      hindi: { type: String, default: "NA" },
-      urdu: { type: String, default: "NA" },
-    },
+      english: [{
+        timestamp: [Number], // Array of numbers
+        text: { type: String, required: true }
+      }],
+      original: [{
+        timestamp: [Number], // Array of numbers
+        text: { type: String, required: true }
+      }]
+    },    
     requestSent: {
       type: Boolean,
       default: false, // Set to false by default
     },
     summary: {
       english: { type: String, default: "NA" },
-      hindi: { type: String, default: "NA" },
-      urdu: { type: String, default: "NA" },
+      original: { type: String, default: "NA" }
     },
     qnas: {
       shortQuestions: [

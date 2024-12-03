@@ -5,6 +5,7 @@ import { Video } from "../models/video.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
 import axios from 'axios'; // Importing axios
+import config from "../src/conf.js";
 
 
 const getWatchHistory = asyncHandler(async (req, res) => {
@@ -42,63 +43,6 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     }
 });
 
-
-// const addVideo = asyncHandler(async (req, res) => {
-//     const videoUrl = req.body.videoUrl;
-//     const userId = req.user._id; // Assuming `req.user` is populated by a middleware like `verifyJWT`
-  
-//     if (!videoUrl) {
-//         throw new ApiError(400, "Please provide a valid video URL");
-//     }
-
-//     // Check if the video exists in the database
-//     let video = await Video.findOne({ videoUrl });
-
-//     if (!video) {
-//         // Video doesn't exist, create a new video entry
-//         video = new Video({ videoUrl });
-
-//         // Fetch video details (from YouTube or another source)
-//         await video.fetchVideoDetails();
-
-//         // Save the new video to the database
-//         await video.save();
-//     }
-
-//     // Fetch the user from the database
-//     const user = await User.findById(userId).populate("watchHistory");
-//     // console.log(user.watchHistory); 
-
-//     if (!user) {
-//         throw new ApiError(404, "User not found");
-//     }
-
-//     // Check if the video is already in the user's watch history
-//     const alreadyInHistory = user.watchHistory.some(
-//         (historyItem) => historyItem.videoUrl === videoUrl
-//     );
-
-//     if (alreadyInHistory) {
-//         return res.status(200).json(
-//             new ApiResponse(
-//                 201,video, "Video already in watch history",
-                
-//             ));
-//     }
-
-//     // Add the video to the user's watch history
-//     user.watchHistory.push(video._id);
-//     await user.save();
-
-//     res.status(201).json(
-//         new ApiResponse(
-//             201, 
-//             video, 
-//             "Video added successfully and included in watch history",
-            
-//         )
-//     );
-// });
 
 const addVideo = asyncHandler(async (req, res) => {
 
@@ -138,14 +82,16 @@ const addVideo = asyncHandler(async (req, res) => {
 
     if (alreadyInHistory) {
       if (!video.requestSent) {
+        // console.log("This is the ngrok url:", config.ngrokUrl)
         try {
-              console.log("Before sending Request To external API")
-              const tempResponse = await axios.post(process.env.EXTERNAL_VIDEO_ENDPOINT2, {
+              console.log("Already in the DataBase Before sending Request To external API")
+              const tempResponse = await axios.post(config.externalEndpoints.video1, {
                 videoId: video._id,
-                videoUrl: videoUrl
+                videoUrl: videoUrl,
+                ngrokUrl: config.ngrokUrl // Include ngrok URL in the request
             });
-            if (tempResponse.data.videoId) {
-              // console.log("Response from external API:", tempResponse.data);
+            if (tempResponse.data) {
+              // console.log("Response from external API:", tempResponse);
       
               // Set requestSent to true after successful response
               video.requestSent = true;
@@ -175,11 +121,17 @@ const addVideo = asyncHandler(async (req, res) => {
     // Sending a POST request to another endpoint with the videoId and videoUrl
     try {
         // console.log("Before sending Request To external API")
-        const tempResponse = await axios.post(process.env.EXTERNAL_VIDEO_ENDPOINT2, {
+        
+        // console.log("Before sending |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||This is the ngrok url:", config.ngrokUrl)
+        const tempResponse = await axios.post(config.externalEndpoints.video1, {
             videoId: video._id,
-            videoUrl: videoUrl
+            videoUrl: videoUrl,
+            ngrokUrl: config.ngrokUrl // Include ngrok URL in the request
         });
-        if (tempResponse.data.videoId) {
+
+        // Log the full response for debugging
+        console.log("Full Response from external API:", tempResponse.data);
+        if (tempResponse) {
           // console.log("Response from external API:", tempResponse.data);
   
           // Set requestSent to true after successful response
@@ -207,7 +159,8 @@ const addVideo = asyncHandler(async (req, res) => {
 
 
 const getTranscript = asyncHandler(async (req, res) => {
-    const videoId = req.body.videoId || req.params; // Assuming videoId is passed as a URL parameter
+  const videoId = req.query.videoId || req.body.videoId || req.params;
+  // console.log("Inside the getTranscript :", videoId);
   
     if (!videoId) {
       throw new ApiError(400, "Video ID is required.");
@@ -234,8 +187,8 @@ const getTranscript = asyncHandler(async (req, res) => {
 
 
   const getSummary = asyncHandler(async (req, res) => {
-    const videoId = req.body.videoId || req.params;// Assuming videoId is passed as a URL parameter
-  
+    const videoId = req.query.videoId || req.body.videoId || req.params;
+  // console.log("Inside the getTranscript :", videoId);
     if (!videoId) {
       throw new ApiError(400, "Video ID is required.");
     }
@@ -257,7 +210,7 @@ const getTranscript = asyncHandler(async (req, res) => {
 
 
   const getQnas = asyncHandler(async (req, res) => {
-    const videoId = req.body.videoId || req.params; // Assuming videoId is passed as a URL parameter
+    const videoId = req.query.videoId || req.body.videoId || req.params;
   
     if (!videoId) {
       throw new ApiError(400, "Video ID is required.");

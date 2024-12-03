@@ -62,21 +62,72 @@ const addVideo = asyncHandler(async (req, res) => {
 });
 
 
+// const addTranscript = asyncHandler(async (req, res) => {
+//     const { id, english, original } = req.body; // Extract ID and possible transcript fields from the request body
+//     console.log("The res was ||||||||||||||||||||||||||||||||>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", req.body)
+//     try {
+//       // Find the video by ID
+//       console.log("The video Id is :", id )
+//       const video = await Video.findById(id);
+  
+//       if (!video) {
+//         return res.status(404).json({ message: "Video not found" });
+//       }
+  
+//       // Patch the transcript field
+//       if (english) video.transcript.english = english;
+//       if (original) video.transcript.original = original;
+  
+//       // Save the updated video
+//       await video.save();
+//       console.log("Transcript added done")
+  
+//       res.status(200).json({
+//         message: "Transcript updated successfully",
+//       });
+//     } catch (error) {
+//       res.status(500).json({ message: "Failed to update transcript", error });
+//     }
+//   });
+  
+
 const addTranscript = asyncHandler(async (req, res) => {
-    const { id, english, hindi, urdu } = req.body; // Extract ID and possible transcript fields from the request body
+    const { id, english, original } = req.body; // Extract ID and possible transcript fields from the request body
+    console.log("Received request body:", );
   
     try {
       // Find the video by ID
+      console.log("The video ID is:", id);
       const video = await Video.findById(id);
   
       if (!video) {
         return res.status(404).json({ message: "Video not found" });
       }
   
-      // Patch the transcript field
-      if (english) video.transcript.english = english;
-      if (hindi) video.transcript.hindi = hindi;
-      if (urdu) video.transcript.urdu = urdu;
+      // Validate and update the transcript fields
+      if (english && Array.isArray(english)) {
+        video.transcript.english = english.map((item) => {
+          if (Array.isArray(item.timestamp) && item.text) {
+            return {
+              timestamp: item.timestamp, // Expecting an array
+              text: item.text,
+            };
+          }
+          throw new Error("Invalid format for 'english' transcript: Each item must have an array 'timestamp' and a 'text' field");
+        });
+      }
+  
+      if (original && Array.isArray(original)) {
+        video.transcript.original = original.map((item) => {
+          if (Array.isArray(item.timestamp) && item.text) {
+            return {
+              timestamp: item.timestamp, // Expecting an array
+              text: item.text,
+            };
+          }
+          throw new Error("Invalid format for 'original' transcript: Each item must have an array 'timestamp' and a 'text' field");
+        });
+      }
   
       // Save the updated video
       await video.save();
@@ -85,14 +136,16 @@ const addTranscript = asyncHandler(async (req, res) => {
         message: "Transcript updated successfully",
       });
     } catch (error) {
-      res.status(500).json({ message: "Failed to update transcript", error });
+      console.error("Error updating transcript:", error.message);
+      res.status(500).json({ message: "Failed to update transcript", error: error.message });
     }
   });
+  
   
 
 
   const addSummary = asyncHandler(async (req, res) => {
-    const { id, english, hindi, urdu } = req.body; // Extract video ID and possible summary fields from the request body
+    const { id, original, english } = req.body; // Extract video ID and possible summary fields from the request body
 
     try {
         // Find the video by ID
@@ -104,8 +157,7 @@ const addTranscript = asyncHandler(async (req, res) => {
 
         // Patch the summary field
         if (english) video.summary.english = english;
-        if (hindi) video.summary.hindi = hindi;
-        if (urdu) video.summary.urdu = urdu;
+        if (original) video.summary.original = original
 
         // Save the updated video
         await video.save();

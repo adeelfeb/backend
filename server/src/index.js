@@ -26,6 +26,8 @@ const startServer = async () => {
             authtoken: process.env.NGROK_AUTH, // Use the token from .env
             addr: port, // The port your app is running on
         });
+        conf.ngrokUrl = ngrokUrl;
+        console.log(`🌐 Ngrok URL stored in conf: ${conf.ngrokUrl}`);
         console.log(`🌐 Public URL via ngrok: ${ngrokUrl}`);
 
         // Update the callback URL dynamically in your config

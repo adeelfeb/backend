@@ -23,10 +23,11 @@ const config = {
     },
     ngrok: {
         auth: process.env.NGROK_AUTH,
+        url: null, // Placeholder for the Ngrok URL
     },
     externalEndpoints: {
-        video1: process.env.EXTERNAL_VIDEO_ENDPOINT,
-        video2: process.env.EXTERNAL_VIDEO_ENDPOINT2,
+        video1: `${process.env.EXTERNAL_VIDEO_ENDPOINT}/translate`,
+        video2: process.env.EXTERNAL_VIDEO_ENDPOINT2
     },
     googleAuth: {
         clientId: process.env.GOOGLE_CLIENT_ID,
@@ -35,5 +36,6 @@ const config = {
     },
     sessionSecret: process.env.SESSION_SECRET || 'supersecretkey',
 };
+
 
 export default config;
