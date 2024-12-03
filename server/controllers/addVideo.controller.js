@@ -140,12 +140,12 @@ const addTranscript = asyncHandler(async (req, res) => {
       res.status(500).json({ message: "Failed to update transcript", error: error.message });
     }
   });
-  
-  
 
 
-  const addSummary = asyncHandler(async (req, res) => {
-    const { id, original, english } = req.body; // Extract video ID and possible summary fields from the request body
+ 
+const addSummary = asyncHandler(async (req, res) => {
+    const { id, original, english, Summary_eng } = req.body; 
+    // console.log("Received Summary:", Summary_eng); 
 
     try {
         // Find the video by ID
@@ -155,20 +155,104 @@ const addTranscript = asyncHandler(async (req, res) => {
             return res.status(404).json({ message: "Video not found" });
         }
 
-        // Patch the summary field
-        if (english) video.summary.english = english;
-        if (original) video.summary.original = original
+        // Ensure summary field exists
+        if (!video.summary) {
+            video.summary = { english: '', original: '' };
+        }
+
+        // Only update if values exist
+        if (Summary_eng) video.summary.english = Summary_eng; // Update english summary
+        if (original) video.summary.original = original; // Update original summary
+        if (english && !Summary_eng) video.summary.english = english; 
+
 
         // Save the updated video
         await video.save();
+
+        // Fetch the updated video to verify the change
+        const updatedVideo = await Video.findById(id);
+        // console.log("Updated video:", updatedVideo);
 
         res.status(200).json({
             message: "Summary updated successfully"
         });
     } catch (error) {
-        res.status(500).json({ message: "Failed to update summary", error });
+        console.error("Error updating summary:", error); // Log the error for debugging
+        res.status(500).json({ message: "Failed to update summary", error: error.message });
     }
 });
+
+
+
+
+
+// const addKeyconcept = asyncHandler(async (req, res) => {
+//     const { id, keyconcept } = req.body; // Extract video ID and keyconcept from the request body
+
+//     try {
+//         // Find the video by ID
+//         const video = await Video.findById(id);
+
+//         if (!video) {
+//             return res.status(404).json({ message: "Video not found" });
+//         }
+
+//         // Ensure keyconcept field exists and update it
+//         video.keyconcept.type = keyconcept || "NA"; // Update the keyconcept field or set it to "NA" if not provided
+
+//         // Save the updated video
+//         await video.save();
+
+//         res.status(200).json({
+//             message: "Keyconcept updated successfully",
+//             keyconcept: video.keyconcept.type, // Include updated keyconcept in response
+//         });
+//     } catch (error) {
+//         console.error("Error updating keyconcept:", error); // Log error for debugging
+//         res.status(500).json({
+//             message: "Failed to update keyconcept",
+//             error: error.message,
+//         });
+//     }
+// });
+
+const addKeyconcept = asyncHandler(async (req, res) => {
+    const { id, primary, secondary, description } = req.body; // Extract video ID and keyconcept details
+
+    try {
+        // Find the video by ID
+        const video = await Video.findById(id);
+
+        if (!video) {
+            return res.status(404).json({ message: "Video not found" });
+        }
+
+        // Ensure keyconcept field exists and update it
+        if (!video.keyconcept) {
+            video.keyconcept = {}; // Create an empty keyconcept object if it doesn't exist
+        }
+
+        // Update keyconcept fields
+        if (primary) video.keyconcept.type.primary = primary;
+        if (secondary) video.keyconcept.type.secondary = secondary; // Expecting an array
+        if (description) video.keyconcept.type.description = description;
+
+        // Save the updated video
+        await video.save();
+
+        res.status(200).json({
+            message: "Keyconcept updated successfully",
+            keyconcept: video.keyconcept.type, // Include updated keyconcept in response
+        });
+    } catch (error) {
+        console.error("Error updating keyconcept:", error); // Log error for debugging
+        res.status(500).json({
+            message: "Failed to update keyconcept",
+            error: error.message,
+        });
+    }
+});
+
 
 
 const addQnas = asyncHandler(async (req, res) => {
@@ -217,5 +301,6 @@ const addQnas = asyncHandler(async (req, res) => {
 export { addVideo,
     addTranscript,
     addSummary,
-    addQnas
+    addQnas,
+    addKeyconcept
  };

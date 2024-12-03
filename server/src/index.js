@@ -13,7 +13,7 @@ const startServer = async () => {
     try {
         // Connect to MongoDB
         await connectDB();
-        console.log("⚙️ MongoDB connected successfully!");
+        // console.log("⚙️ MongoDB connected successfully!");
 
         // Start the server
         const port = process.env.PORT || 8000;
@@ -28,7 +28,7 @@ const startServer = async () => {
         });
         conf.ngrokUrl = ngrokUrl;
         console.log(`🌐 Ngrok URL stored in conf: ${conf.ngrokUrl}`);
-        console.log(`🌐 Public URL via ngrok: ${ngrokUrl}`);
+        // console.log(`🌐 Public URL via ngrok: ${ngrokUrl}`);
 
         // Update the callback URL dynamically in your config
         conf.googleAuth.callbackUrl = `${ngrokUrl}/auth/google/callback`; // Use ngrok URL for callback

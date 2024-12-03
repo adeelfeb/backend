@@ -85,7 +85,7 @@ const addVideo = asyncHandler(async (req, res) => {
         // console.log("This is the ngrok url:", config.ngrokUrl)
         try {
               console.log("Already in the DataBase Before sending Request To external API")
-              const tempResponse = await axios.post(config.externalEndpoints.video1, {
+              const tempResponse = await axios.post(config.externalEndpoints.video2, {
                 videoId: video._id,
                 videoUrl: videoUrl,
                 ngrokUrl: config.ngrokUrl // Include ngrok URL in the request
@@ -123,7 +123,7 @@ const addVideo = asyncHandler(async (req, res) => {
         // console.log("Before sending Request To external API")
         
         // console.log("Before sending |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||This is the ngrok url:", config.ngrokUrl)
-        const tempResponse = await axios.post(config.externalEndpoints.video1, {
+        const tempResponse = await axios.post(config.externalEndpoints.video2, {
             videoId: video._id,
             videoUrl: videoUrl,
             ngrokUrl: config.ngrokUrl // Include ngrok URL in the request
@@ -186,9 +186,10 @@ const getTranscript = asyncHandler(async (req, res) => {
   });
 
 
-  const getSummary = asyncHandler(async (req, res) => {
-    const videoId = req.query.videoId || req.body.videoId || req.params;
+const keyconcept = asyncHandler(async (req, res) => {
+  const videoId = req.query.videoId || req.body.videoId || req.params;
   // console.log("Inside the getTranscript :", videoId);
+  
     if (!videoId) {
       throw new ApiError(400, "Video ID is required.");
     }
@@ -200,13 +201,40 @@ const getTranscript = asyncHandler(async (req, res) => {
       throw new ApiError(404, "Video not found.");
     }
   
-    // Extract the summary (default to English for this example)
-    const summary = video.summary || {};
+    // Extract the transcript (default to English for this example)
+    const keyconcept = video.keyconcept || {};
   
+  
+    return res.status(200).json(
+      new ApiResponse(200, { keyconcept: keyconcept }, "Transcript fetched successfully")
+    );
+  });
+
+
+  const getSummary = asyncHandler(async (req, res) => {
+    const videoId = req.query.videoId || req.body.videoId || req.params.videoId; // Access the videoId properly
+    // console.log("Inside the Summary, Video ID:", videoId);
+    if (!videoId) {
+      throw new ApiError(400, "Video ID is required.");
+    }
+  
+    // Find the video by its ID
+    const video = await Video.findById(videoId);
+    // console.log("This is the video:", video)
+  
+    if (!video) {
+      throw new ApiError(404, "Video not found.");
+    }
+  
+    // Extract the summary (default to empty object if not found)
+    const summary = video.summary || {};
+    // console.log("This is the summary:", summary);
+    
     return res.status(200).json(
       new ApiResponse(200, { summary: summary }, "Summary fetched successfully")
     );
-  });
+});
+
 
 
   const getQnas = asyncHandler(async (req, res) => {
@@ -238,5 +266,6 @@ export{
     addVideo,
     getTranscript,
     getSummary,
-    getQnas
+    getQnas,
+    keyconcept
 }

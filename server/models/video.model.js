@@ -29,6 +29,14 @@ const videoSchema = new Schema(
       english: { type: String, default: "NA" },
       original: { type: String, default: "NA" }
     },
+    keyconcept: {
+      type: {
+          primary: { type: String, default: "NA" }, // Primary key concept
+          secondary: [{ type: String }], // Array for additional/secondary concepts
+          description: { type: String, default: "No description available" } // Optional description
+      },
+      default: {}, // Set default to an empty object
+    },  
     qnas: {
       shortQuestions: [
         {
