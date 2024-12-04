@@ -49,6 +49,7 @@ const addVideo = asyncHandler(async (req, res) => {
   // console.log("Inside AddVideo Func")
     const videoUrl = req.body.videoUrl;
     const userId = req.user._id; // Assuming `req.user` is populated by a middleware like `verifyJWT`
+    const apiUrl = config.externalEndpoints.url1 || config.externalEndpoints.url2
   
     if (!videoUrl) {
         throw new ApiError(400, "Please provide a valid video URL");
@@ -84,8 +85,8 @@ const addVideo = asyncHandler(async (req, res) => {
       if (!video.requestSent) {
         // console.log("This is the ngrok url:", config.ngrokUrl)
         try {
-              console.log("Already in the DataBase Before sending Request To external API")
-              const tempResponse = await axios.post(config.externalEndpoints.video2, {
+              // console.log("Already in the DataBase Before sending Request To external API")
+              const tempResponse = await axios.post(apiUrl , {
                 videoId: video._id,
                 videoUrl: videoUrl,
                 ngrokUrl: config.ngrokUrl // Include ngrok URL in the request
@@ -122,15 +123,13 @@ const addVideo = asyncHandler(async (req, res) => {
     try {
         // console.log("Before sending Request To external API")
         
-        // console.log("Before sending |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||This is the ngrok url:", config.ngrokUrl)
-        const tempResponse = await axios.post(config.externalEndpoints.video2, {
+        const tempResponse = await axios.post(apiUrl, {
             videoId: video._id,
             videoUrl: videoUrl,
             ngrokUrl: config.ngrokUrl // Include ngrok URL in the request
         });
 
         // Log the full response for debugging
-        console.log("Full Response from external API:", tempResponse.data);
         if (tempResponse) {
           // console.log("Response from external API:", tempResponse.data);
   

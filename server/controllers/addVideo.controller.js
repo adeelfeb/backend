@@ -4,10 +4,12 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
+
+
 const addVideo = asyncHandler(async (req, res) => {
     const videoUrl = req.body.videoUrl;
     const userId = req.user._id; // Assuming `req.user` is populated by a middleware like `verifyJWT`
-  
+
     if (!videoUrl) {
         throw new ApiError(400, "Please provide a valid video URL");
     }
@@ -22,13 +24,18 @@ const addVideo = asyncHandler(async (req, res) => {
         // Fetch video details (from YouTube or another source)
         await video.fetchVideoDetails();
 
+        // Validate video duration
+        const [minutes, seconds] = video.duration.split(":").map(Number);
+        if (minutes > 20 || (minutes === 20 && seconds > 0)) {
+            throw new ApiError(400, "Input duration should be less than 20 minutes");
+        }
+
         // Save the new video to the database
         await video.save();
     }
 
     // Fetch the user from the database
     const user = await User.findById(userId).populate("watchHistory");
-    // console.log(user.watchHistory); 
 
     if (!user) {
         throw new ApiError(404, "User not found");
@@ -42,9 +49,11 @@ const addVideo = asyncHandler(async (req, res) => {
     if (alreadyInHistory) {
         return res.status(200).json(
             new ApiResponse(
-                201,video, "Video already in watch history",
-                
-            ));
+                201,
+                video,
+                "Video already in watch history"
+            )
+        );
     }
 
     // Add the video to the user's watch history
@@ -53,51 +62,21 @@ const addVideo = asyncHandler(async (req, res) => {
 
     res.status(201).json(
         new ApiResponse(
-            201, 
-            video, 
-            "Video added successfully and included in watch history",
-            
+            201,
+            video,
+            "Video added successfully and included in watch history"
         )
     );
 });
 
 
-// const addTranscript = asyncHandler(async (req, res) => {
-//     const { id, english, original } = req.body; // Extract ID and possible transcript fields from the request body
-//     console.log("The res was ||||||||||||||||||||||||||||||||>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", req.body)
-//     try {
-//       // Find the video by ID
-//       console.log("The video Id is :", id )
-//       const video = await Video.findById(id);
-  
-//       if (!video) {
-//         return res.status(404).json({ message: "Video not found" });
-//       }
-  
-//       // Patch the transcript field
-//       if (english) video.transcript.english = english;
-//       if (original) video.transcript.original = original;
-  
-//       // Save the updated video
-//       await video.save();
-//       console.log("Transcript added done")
-  
-//       res.status(200).json({
-//         message: "Transcript updated successfully",
-//       });
-//     } catch (error) {
-//       res.status(500).json({ message: "Failed to update transcript", error });
-//     }
-//   });
-  
-
 const addTranscript = asyncHandler(async (req, res) => {
     const { id, english, original } = req.body; // Extract ID and possible transcript fields from the request body
-    console.log("Received request body:", );
+    // console.log("Received request body:", );
   
     try {
       // Find the video by ID
-      console.log("The video ID is:", id);
+    //   console.log("The video ID is:", id);
       const video = await Video.findById(id);
   
       if (!video) {
@@ -217,46 +196,57 @@ const addSummary = asyncHandler(async (req, res) => {
 // });
 
 const addKeyconcept = asyncHandler(async (req, res) => {
-    const { id, primary, secondary, description } = req.body; // Extract video ID and keyconcept details
-
+    const { id, primary, concept, description } = req.body;
+  
     try {
-        // Find the video by ID
-        const video = await Video.findById(id);
-
-        if (!video) {
-            return res.status(404).json({ message: "Video not found" });
-        }
-
-        // Ensure keyconcept field exists and update it
-        if (!video.keyconcept) {
-            video.keyconcept = {}; // Create an empty keyconcept object if it doesn't exist
-        }
-
-        // Update keyconcept fields
-        if (primary) video.keyconcept.type.primary = primary;
-        if (secondary) video.keyconcept.type.secondary = secondary; // Expecting an array
-        if (description) video.keyconcept.type.description = description;
-
-        // Save the updated video
-        await video.save();
-
-        res.status(200).json({
-            message: "Keyconcept updated successfully",
-            keyconcept: video.keyconcept.type, // Include updated keyconcept in response
-        });
+      // Find the video by ID
+      const video = await Video.findById(id);
+  
+      if (!video) {
+        return res.status(404).json({ message: "Video not found" });
+      }
+  
+      // Ensure `keyconcept` and its properties exist
+      if (!video.keyconcept) {
+        video.keyconcept = {}; // Initialize if not exists
+      }
+      if (!video.keyconcept.type) {
+        video.keyconcept.type = {}; // Initialize if not exists
+      }
+  
+      // Update primary, description, and concept
+      if (primary) video.keyconcept.type.primary = primary;
+      if (description) video.keyconcept.type.description = description;
+  
+      // Add or update the `concept` field
+      if (concept && Array.isArray(concept)) {
+        video.keyconcept.type.secondary = concept; // Replace existing concepts
+      }
+  
+      // Save the updated video
+      await video.save();
+  
+      res.status(200).json({
+        message: "Keyconcept updated successfully",
+        keyconcept: video.keyconcept.type, // Include updated keyconcept in response
+      });
     } catch (error) {
-        console.error("Error updating keyconcept:", error); // Log error for debugging
-        res.status(500).json({
-            message: "Failed to update keyconcept",
-            error: error.message,
-        });
+      console.error("Error updating keyconcept:", error); // Log error for debugging
+      res.status(500).json({
+        message: "Failed to update keyconcept",
+        error: error.message,
+      });
     }
-});
+  });
+  
+  
+
 
 
 
 const addQnas = asyncHandler(async (req, res) => {
-    const { id, shortQuestions, mcqs } = req.body; // Extract video ID and possible Q&A fields from the request body
+    const { id, Questions, mcqs } = req.body; // Extract video ID and possible Q&A fields from the request body
+    console.log("The data to be saved is:", req.body)
 
     try {
         // Find the video by ID

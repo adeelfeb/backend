@@ -26,8 +26,8 @@ const config = {
         url: null, // Placeholder for the Ngrok URL
     },
     externalEndpoints: {
-        video1: `${process.env.EXTERNAL_VIDEO_ENDPOINT}/translate`,
-        video2: process.env.EXTERNAL_VIDEO_ENDPOINT2
+        url1: `${process.env.EXTERNAL_VIDEO_ENDPOINT}/translate`,
+        url2: process.env.EXTERNAL_VIDEO_ENDPOINT2
     },
     googleAuth: {
         clientId: process.env.GOOGLE_CLIENT_ID,
